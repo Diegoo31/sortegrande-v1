@@ -3,15 +3,9 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react({
-      // Desativa a verificação de tipos por parte do plugin React
-      jsxRuntime: 'classic'
-    })
-  ],
+  plugins: [react()],
   build: {
     sourcemap: true,
-    // Ignorar warnings como erros
     rollupOptions: {
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
@@ -25,14 +19,7 @@ export default defineConfig({
     include: ['react', 'react-dom'],
   },
   esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' },
-    // Desativa a verificação de tipos
-    tsconfigRaw: {
-      compilerOptions: {
-        jsx: 'react-jsx',
-        jsxImportSource: 'react'
-      }
-    }
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   },
   server: {
     host: true,
