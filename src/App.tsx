@@ -420,7 +420,9 @@ function App() {
 
   const closeAllModals = () => {
     setShowBuyerModal(false);
-    // Feche outros modais ou locais conforme necessário
+    setSelectedTicket(null);
+    setWinningNumber(null);
+    setIsSpinning(false);
   };
 
   return (
