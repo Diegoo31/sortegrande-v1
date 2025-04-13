@@ -6,6 +6,15 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: true,
+    // Ignorar warnings como erros
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+          return
+        }
+        warn(warning)
+      }
+    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom'],
