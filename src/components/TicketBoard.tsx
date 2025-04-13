@@ -3,8 +3,8 @@ import { TicketData } from '../App'
 
 const BoardContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 0.3rem;
   
   @media (min-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -29,7 +29,7 @@ const Ticket = styled.div<TicketProps>`
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -39,6 +39,10 @@ const Ticket = styled.div<TicketProps>`
   box-shadow: ${props => props.winner 
     ? '0 8px 20px rgba(255, 193, 7, 0.4)' 
     : '0 4px 10px rgba(0, 0, 0, 0.2)'};
+  
+  @media (min-width: 768px) {
+    font-size: 1.2rem;
+  }
     
   &:hover {
     transform: translateY(-5px) ${props => props.winner ? 'rotateY(360deg)' : ''};

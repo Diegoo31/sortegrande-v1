@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styled from 'styled-components'
 import { Buyer } from '../App'
 import { validateName, validateContact, sanitizeText } from '../utils/validators'
+import { useDialog } from '../contexts/DialogContext'
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -14,42 +15,31 @@ const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
+  padding: 1rem;
 `
 
 const ModalContent = styled.div`
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: rgba(31, 33, 58, 0.95);
   border-radius: 16px;
-  padding: 2rem;
-  width: 90%;
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  width: 100%;
   max-width: 500px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
-    border-radius: 16px;
-    z-index: -1;
-  }
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 `
 
 const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
 `
 
 const ModalTitle = styled.h3`
-  font-size: 1.5rem;
+  color: white;
+  font-size: 1.3rem;
   margin: 0;
 `
 
@@ -59,71 +49,58 @@ const CloseButton = styled.button`
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  opacity: 0.8;
-  transition: all 0.3s ease;
+  opacity: 0.7;
+  transition: opacity 0.2s;
   
   &:hover {
     opacity: 1;
-    transform: scale(1.1);
   }
 `
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 `
 
-const FormGroup = styled.div`
+const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 `
 
 const Label = styled.label`
+  color: white;
   font-size: 0.9rem;
-  opacity: 0.9;
 `
 
-const Input = styled.input<{ hasError?: boolean }>`
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid ${props => props.hasError 
-    ? 'rgba(255, 77, 77, 0.5)' 
-    : 'rgba(255, 255, 255, 0.2)'};
+const Input = styled.input`
+  padding: 0.8rem;
   border-radius: 8px;
-  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   font-size: 1rem;
-  transition: all 0.3s ease;
   
   &:focus {
     outline: none;
-    border-color: ${props => props.hasError ? '#ff4d4d' : '#4361ee'};
-    box-shadow: 0 0 0 2px ${props => props.hasError 
-      ? 'rgba(255, 77, 77, 0.3)' 
-      : 'rgba(67, 97, 238, 0.3)'};
-  }
-  
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    border-color: #4361ee;
   }
 `
 
 const SubmitButton = styled.button`
+  margin-top: 0.5rem;
   background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
   color: white;
   padding: 0.8rem;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
-  cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
-  border: none;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.4);
   }
   
   &:active {
@@ -154,6 +131,7 @@ interface BuyerModalProps {
 }
 
 const BuyerModal = ({ ticketNumber, onAddBuyer, onClose }: BuyerModalProps) => {
+  const { showAlert } = useDialog();
   const [name, setName] = useState('')
   const [contact, setContact] = useState('')
   const [errors, setErrors] = useState<{ name?: string; contact?: string }>({})
@@ -175,21 +153,24 @@ const BuyerModal = ({ ticketNumber, onAddBuyer, onClose }: BuyerModalProps) => {
   };
   
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     
-    if (!validateForm()) {
-      return;
+    if (name.trim() === '' || contact.trim() === '') {
+      showAlert({
+        message: 'Por favor, preencha todos os campos'
+      });
+      return
     }
     
-    onAddBuyer({
+    const buyer: Buyer = {
       id: Date.now().toString(),
-      name: sanitizeText(name.trim()),
-      contact: sanitizeText(contact.trim())
-    });
+      name: name.trim(),
+      contact: contact.trim()
+    }
     
-    setName('');
-    setContact('');
-  };
+    onAddBuyer(buyer)
+    onClose()
+  }
   
   return (
     <ModalOverlay onClick={onClose}>
@@ -202,36 +183,32 @@ const BuyerModal = ({ ticketNumber, onAddBuyer, onClose }: BuyerModalProps) => {
         </ModalHeader>
         
         <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label htmlFor="buyer-name">Nome do Comprador</Label>
-            <Input
-              id="buyer-name"
+          <InputGroup>
+            <Label htmlFor="name">Nome do Comprador</Label>
+            <Input 
+              id="name"
               type="text"
-              placeholder="Digite o nome completo"
               value={name}
               onChange={e => setName(e.target.value)}
+              placeholder="Digite o nome completo"
               required
-              hasError={!!errors.name}
             />
-            {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
-          </FormGroup>
+          </InputGroup>
           
-          <FormGroup>
-            <Label htmlFor="buyer-contact">Contato</Label>
-            <Input
-              id="buyer-contact"
+          <InputGroup>
+            <Label htmlFor="contact">Contato</Label>
+            <Input 
+              id="contact"
               type="text"
-              placeholder="Digite o telefone ou email"
               value={contact}
               onChange={e => setContact(e.target.value)}
+              placeholder="Telefone ou e-mail"
               required
-              hasError={!!errors.contact}
             />
-            {errors.contact && <ErrorMessage>{errors.contact}</ErrorMessage>}
-          </FormGroup>
+          </InputGroup>
           
           <SubmitButton type="submit">
-            Confirmar Compra
+            Registrar Compra
           </SubmitButton>
         </Form>
       </ModalContent>

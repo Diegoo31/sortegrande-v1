@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useDialog } from '../contexts/DialogContext';
 
 const ConfigContainer = styled.div`
   background: rgba(31, 33, 58, 0.8);
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
 `;
 
 const Title = styled.h3`
   color: white;
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  
+  @media (min-width: 768px) {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
 `;
 
 const Form = styled.form`
@@ -52,15 +63,20 @@ const Input = styled.input`
 const Button = styled.button`
   background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
   color: white;
-  padding: 0.7rem 1.5rem;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
   width: fit-content;
   border: none;
   margin-top: 0.5rem;
+
+  @media (min-width: 768px) {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+  }
 
   &:hover {
     transform: translateY(-2px);
@@ -96,10 +112,11 @@ const ConfiguracaoSorteio: React.FC<ConfiguracaoSorteioProps> = ({
   onSalvarConfig,
   temDadosSalvos
 }) => {
+  const { showAlert, showConfirm } = useDialog();
   const [quantidade, setQuantidade] = useState(quantidadeNumeros);
   const [erro, setErro] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validações
@@ -110,13 +127,25 @@ const ConfiguracaoSorteio: React.FC<ConfiguracaoSorteioProps> = ({
 
     // Se tiver dados salvos, confirmar antes de resetar
     if (temDadosSalvos) {
-      if (!window.confirm('Alterar a quantidade de números irá resetar todos os dados do sorteio atual. Deseja continuar?')) {
+      const confirmed = await showConfirm({
+        title: 'Alterar configuração',
+        message: 'Alterar a quantidade de números irá resetar todos os dados do sorteio atual. Deseja continuar?',
+        confirmText: 'Sim, continuar',
+        cancelText: 'Cancelar'
+      });
+      
+      if (!confirmed) {
         return;
       }
     }
 
     setErro(null);
     onSalvarConfig(quantidade);
+    
+    showAlert({
+      title: 'Configuração Salva',
+      message: 'As configurações do sorteio foram atualizadas com sucesso!'
+    });
   };
 
   return (

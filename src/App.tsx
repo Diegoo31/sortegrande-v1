@@ -22,6 +22,7 @@ import {
   clearHistorico
 } from './services/StorageService'
 import { validateTicketNumber } from './utils/validators'
+import { useDialog } from './contexts/DialogContext'
 
 const Container = styled.div`
   width: 100%;
@@ -33,14 +34,15 @@ const Container = styled.div`
 const Content = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.5rem;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1rem;
   
   @media (min-width: 992px) {
     grid-template-columns: 2fr 1fr;
     padding: 2rem;
+    gap: 2rem;
   }
 `
 
@@ -48,46 +50,70 @@ const BoardSection = styled.section`
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
 `
 
 const SpinnerSection = styled.section`
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   height: fit-content;
+  
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
 `
 
 const CanvasContainer = styled.div`
-  height: 300px;
+  height: 250px;
   border-radius: 8px;
   overflow: hidden;
+  
+  @media (min-width: 768px) {
+    height: 300px;
+  }
 `
 
 const ButtonsContainer = styled.div`
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-top: 1rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 1rem;
+  }
 `
 
 const Button = styled.button`
   background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
   color: white;
-  padding: 0.7rem 1.5rem;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
   flex: 1;
+
+  @media (min-width: 768px) {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+  }
 
   &:hover {
     transform: translateY(-2px);
@@ -105,49 +131,79 @@ const Button = styled.button`
 `
 
 const Title = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
   color: #f8f9fa;
+  
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
 `
 
 const InfoSection = styled.section`
   max-width: 1200px;
-  margin: 3rem auto;
-  padding: 2rem;
+  margin: 2rem auto;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  
+  @media (min-width: 768px) {
+    margin: 3rem auto;
+    padding: 2rem;
+  }
 `
 
 const InfoTitle = styled.h2`
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
   color: #f8f9fa;
   position: relative;
   
   &:after {
     content: '';
     position: absolute;
-    bottom: -10px;
+    bottom: -8px;
     left: 0;
-    width: 60px;
-    height: 4px;
+    width: 40px;
+    height: 3px;
     background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
     border-radius: 2px;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    
+    &:after {
+      bottom: -10px;
+      width: 60px;
+      height: 4px;
+    }
   }
 `
 
 const InfoContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    gap: 1.5rem;
+  }
 `
 
 const InfoParagraph = styled.p`
-  line-height: 1.6;
-  font-size: 1.1rem;
+  line-height: 1.5;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.9);
+  
+  @media (min-width: 768px) {
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
 `
 
 const InfoStep = styled.div`
@@ -267,6 +323,8 @@ export type TicketData = {
 }
 
 function App() {
+  const { showAlert, showConfirm } = useDialog();
+  
   // Carregar configuração
   const [config, setConfig] = useState(loadConfig());
   
@@ -343,7 +401,10 @@ function App() {
     const soldTickets = tickets.filter(ticket => ticket.sold);
     
     if (soldTickets.length === 0) {
-      alert('Não há números vendidos para sortear!');
+      showAlert({
+        title: 'Sem números vendidos',
+        message: 'Não há números vendidos para sortear!'
+      });
       setIsSpinning(false);
       return;
     }
@@ -371,8 +432,15 @@ function App() {
     }, 3000);
   }
 
-  const handleReset = () => {
-    if (window.confirm('Tem certeza que deseja reiniciar o sorteio? Todos os dados serão perdidos.')) {
+  const handleReset = async () => {
+    const confirmed = await showConfirm({
+      title: 'Reiniciar Sorteio',
+      message: 'Tem certeza que deseja reiniciar o sorteio? Todos os dados serão perdidos.',
+      confirmText: 'Sim, reiniciar',
+      cancelText: 'Cancelar'
+    });
+    
+    if (confirmed) {
       setTickets(Array.from({ length: config.quantidadeNumeros }, (_, i) => ({
         number: i + 1,
         sold: false,
@@ -396,8 +464,15 @@ function App() {
     setWinningNumber(null);
   }
   
-  const handleLimparHistorico = () => {
-    if (window.confirm('Tem certeza que deseja limpar todo o histórico de sorteios?')) {
+  const handleLimparHistorico = async () => {
+    const confirmed = await showConfirm({
+      title: 'Limpar Histórico',
+      message: 'Tem certeza que deseja limpar todo o histórico de sorteios?',
+      confirmText: 'Sim, limpar',
+      cancelText: 'Cancelar'
+    });
+    
+    if (confirmed) {
       setHistorico([]);
       clearHistorico();
     }
@@ -414,8 +489,14 @@ function App() {
     setConfig(loadConfig());
     setWinningNumber(null);
     
-    alert('Dados importados com sucesso! A página será recarregada para aplicar as mudanças.');
-    window.location.reload();
+    showAlert({
+      title: 'Dados Importados',
+      message: 'Dados importados com sucesso! A página será recarregada para aplicar as mudanças.'
+    });
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   }
 
   const closeAllModals = () => {
